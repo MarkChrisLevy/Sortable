@@ -2836,13 +2836,13 @@
         if (fallback || this.options.forceAutoScrollFallback || Edge || IE11OrLess || Safari) {
           autoScroll(evt, this.options, elem, fallback); // Listener for pointer element change
 
-          var ogElemScroller = getParentAutoScrollElement(elem, true);
+          var ogElemScroller = parentScrollElement(this.options, elem, true);
 
           if (scrolling && (!pointerElemChangedInterval || x !== lastAutoScrollX || y !== lastAutoScrollY)) {
             pointerElemChangedInterval && clearPointerElemChangedInterval(); // Detect for pointer elem change, emulating native DnD behaviour
 
             pointerElemChangedInterval = setInterval(function () {
-              var newElem = getParentAutoScrollElement(document.elementFromPoint(x, y), true);
+              var newElem = parentScrollElement(_this.options, document.elementFromPoint(x, y), true);
 
               if (newElem !== ogElemScroller) {
                 ogElemScroller = newElem;
@@ -2856,12 +2856,12 @@
           }
         } else {
           // if DnD is enabled (and browser has good autoscrolling), first autoscroll will already scroll, so get parent autoscroll of first autoscroll
-          if (!this.options.bubbleScroll || getParentAutoScrollElement(elem, true) === getWindowScrollingElement()) {
+          if (!this.options.bubbleScroll || parentScrollElement(this.options, elem, true) === getWindowScrollingElement()) {
             clearAutoScrolls();
             return;
           }
 
-          autoScroll(evt, this.options, getParentAutoScrollElement(elem, false), false);
+          autoScroll(evt, this.options, parentScrollElement(this.options, elem, false), false);
         }
       }
     };
@@ -2869,6 +2869,14 @@
       pluginName: 'scroll',
       initializeByDefault: true
     });
+  }
+
+  function parentScrollElement(options, elem, includeSelf) {
+    if (options.parentScrollElement) {
+      return options.parentScrollElement(elem, includeSelf);
+    } else {
+      return getParentAutoScrollElement(elem, includeSelf);
+    }
   }
 
   function clearAutoScrolls() {
@@ -2900,7 +2908,7 @@
       scrollCustomFn = options.scrollFn;
 
       if (scrollEl === true) {
-        scrollEl = getParentAutoScrollElement(rootEl, true);
+        scrollEl = parentScrollElement(options, rootEl, true);
       }
     }
 
@@ -2977,7 +2985,7 @@
       }
 
       layersOut++;
-    } while (options.bubbleScroll && currentParent !== winScroller && (currentParent = getParentAutoScrollElement(currentParent, false)));
+    } while (options.bubbleScroll && currentParent !== winScroller && (currentParent = parentScrollElement(options, currentParent, false)));
 
     scrolling = scrollThisInstance; // in case another function catches scrolling as false in between when it is not
   }, 30);
